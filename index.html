@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Who Wants to Be a Millionaire</title>
+    <style>
+        body {
+            margin: 0;
+            font-family: Arial, sans-serif;
+            background: linear-gradient(135deg, #28313b, #485461);
+            color: white;
+            text-align: center;
+            height: 100vh;
+            overflow: hidden;
+            position: relative;
+        }
+        h1 {
+            margin-top: 20px;
+            font-size: 3rem;
+            color: #ffcc00;
+            animation: glow 2s infinite alternate;
+        }
+        @keyframes glow {
+            from {
+                text-shadow: 0 0 10px #ffcc00, 0 0 20px #ffcc00;
+            }
+            to {
+                text-shadow: 0 0 20px #ffff33, 0 0 30px #ffff33;
+            }
+        }
+        #game-container {
+            margin: 0;
+            padding: 20px;
+            background: rgba(0, 0, 0, 0.7);
+            border-radius: 15px;
+            max-width: 80%;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.5);
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            transition: transform 0.3s ease-in-out;
+            z-index: 10;
+            transform-origin: center center;
+        }
+        #game-container:hover {
+            transform: translate(-50%, -50%) scale(1.03);
+        }
+        #question {
+            font-size: 1.5rem;
+            margin-bottom: 20px;
+        }
+        .answer {
+            background-color: #444;
+            color: white;
+            padding: 10px 20px;
+            margin: 10px;
+            border: none;
+            border-radius: 10px;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: background-color 0.3s, transform 0.2s;
+        }
+        .answer:hover {
+            background-color: #555;
+            transform: scale(1.05);
+        }
+        .lifeline-container {
+            margin-top: 20px;
+        }
+        .lifeline {
+            display: inline-block;
+            margin: 5px;
+            padding: 10px 15px;
+            font-size: 1rem;
+            background: #444;
+            color: #ffc107;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: transform 0.3s, background-color 0.3s;
+        }
+        .lifeline:hover {
+            transform: scale(1.1);
+            background-color: #555;
+        }
+        #hint {
+            margin-top: 20px;
+            padding: 10px;
+            font-size: 1.2rem;
+            color: #ffcc00;
+        }
+        .falling-money {
+            position: absolute;
+            top: -10px;
+            left: 50%;
+            font-size: 30px;
+            color: gold;
+            animation: fall 3s infinite linear;
+        }
+        @keyframes fall {
+            from {
+                top: -10px;
+                opacity: 1;
+            }
+            to {
+                top: 100vh;
+                opacity: 0;
+            }
+        }
+    </style>
+</head>
+<body>
+    <h1>Who Wants to Be a Millionaire</h1>
+
+    <!-- Money falling animation -->
+    <div class="falling-money" style="left: 10%;">💵</div>
+    <div class="falling-money" style="left: 30%;">💵</div>
+    <div class="falling-money" style="left: 50%;">💵</div>
+    <div class="falling-money" style="left: 70%;">💵</div>
+    <div class="falling-money" style="left: 90%;">💵</div>
+
+    <div id="game-container">
+        <div id="question"></div>
+        <div id="answers"></div>
+        <div class="lifeline-container">
+            <button class="lifeline" onclick="use50_50()">خيار ٥٠/٥٠</button>
+            <button class="lifeline" onclick="askAudience()">اسأل الجمهور</button>
+            <button class="lifeline" onclick="askTeacher()">اسأل المعلم</button>
+        </div>
+        <div id="hint" style="display: none;"></div>
+    </div>
+
+    <script>
+        const questions = [
+            { question: "What is the past tense of 'go'?", answers: ["Gone", "Went", "Going", "Goes"], correct: 1 },
+            { question: "What is the past tense of 'play'?", answers: ["Plays", "Played", "Playing", "Player"], correct: 1 },
+            { question: "What is the past tense of 'see'?", answers: ["Seen", "Saw", "See", "Seeing"], correct: 1 },
+            { question: "What is the capital of France?", answers: ["Berlin", "Madrid", "Paris", "Rome"], correct: 2 },
+            { question: "Which planet is known as the Red Planet?", answers: ["Earth", "Mars", "Jupiter", "Venus"], correct: 1 },
+            { question: "Who wrote 'Romeo and Juliet'?", answers: ["Shakespeare", "Dickens", "Hemingway", "Austen"], correct: 0 },
+        ];
+
+        let currentQuestionIndex = 0;
+        const hint = document.getElementById("hint");
+
+        function loadQuestion(index) {
+            const question = questions[index];
+            document.getElementById("question").innerText = question.question;
+            const answers = document.getElementById("answers");
+            answers.innerHTML = "";
+            question.answers.forEach((answer, i) => {
+                const button = document.createElement("button");
+                button.className = "answer";
+                button.innerText = answer;
+                button.onclick = () => checkAnswer(i === question.correct);
+                answers.appendChild(button);
+            });
+            hint.style.display = "none";
+        }
+
+        function checkAnswer(isCorrect) {
+            document.querySelectorAll(".answer").forEach((btn) => (btn.disabled = true));
+            if (isCorrect) {
+                hint.innerText = "Correct!";
+                hint.style.display = "block";
+                setTimeout(() => {
+                    loadQuestion(++currentQuestionIndex % questions.length);
+                }, 2000);
+            } else {
+                hint.innerText = "Wrong! Restarting...";
+                hint.style.display = "block";
+                setTimeout(() => {
+                    currentQuestionIndex = 0; // Reset to the first question
+                    loadQuestion(currentQuestionIndex);
+                }, 2000);
+            }
+        }
+
+        function use50_50() {
+            const question = questions[currentQuestionIndex];
+            const answers = document.querySelectorAll(".answer");
+            let incorrectAnswers = [];
+            answers.forEach((btn, i) => {
+                if (i !== question.correct) {
+                    incorrectAnswers.push(btn);
+                }
+            });
+            // Randomly hide two incorrect answers
+            incorrectAnswers
+                .sort(() => Math.random() - 0.5)
+                .slice(0, 2)
+                .forEach((btn) => (btn.style.visibility = "hidden"));
+        }
+
+        function askAudience() {
+            hint.innerText = "الجمهور يوصي بالإجابة الصحيحة.";
+            hint.style.display = "block";
+        }
+
+        function askTeacher() {
+            hint.innerText = "المعلم يقترح التحقق من الإجابة الصحيحة بعناية.";
+            hint.style.display = "block";
+        }
+
+        loadQuestion(0);
+    </script>
+</body>
+</html>
